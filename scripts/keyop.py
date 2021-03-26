@@ -12,7 +12,7 @@ __email__ = 'gkourosg@yahoo.gr'
 
 import roslib
 import rospy
-from ackermann_msgs.msg import AckermannDriveStamped
+from ackermann_msgs.msg import AckermannDrive
 from std_msgs.msg import Float64
 import sys, select, termios, tty
 
@@ -50,34 +50,34 @@ class AckermannDriveKeyop:
             max_speed = float(args[0])
             max_steering_angle = float(args[1])
         else:
-            max_speed = 0.2
-            max_steering_angle = 0.7
+            max_speed = 5.0
+            max_steering_angle = 3.14/4
 
         if len(args) > 2:
             cmd_topic = '/' + args[2]
         else:
-            cmd_topic = 'ackermann_cmd'
+            cmd_topic = 'cmd_vel'
 
         self.speed_range = [-float(max_speed), float(max_speed)]
         self.steering_angle_range = [-float(max_steering_angle),
                                      float(max_steering_angle)]
         for key in key_bindings:
             key_bindings[key] = \
-                    (key_bindings[key][0] * float(max_speed) / 5,
-                     key_bindings[key][1] * float(max_steering_angle) / 5)
+                    (key_bindings[key][0] * float(max_speed) / 10,
+                     key_bindings[key][1] * float(max_steering_angle) / 10)
 
         self.speed = 0
         self.steering_angle = 0
         self.motors_pub = rospy.Publisher(
-            cmd_topic, AckermannDriveStamped, queue_size=1)
+            cmd_topic, AckermannDrive, queue_size=1)
         rospy.Timer(rospy.Duration(1.0/5.0), self.pub_callback, oneshot=False)
         self.print_state()
         self.key_loop()
 
     def pub_callback(self, event):
-        ackermann_cmd_msg = AckermannDriveStamped()
-        ackermann_cmd_msg.drive.speed = self.speed
-        ackermann_cmd_msg.drive.steering_angle = self.steering_angle
+        ackermann_cmd_msg = AckermannDrive()
+        ackermann_cmd_msg.speed = self.speed
+        ackermann_cmd_msg.steering_angle = self.steering_angle
         self.motors_pub.publish(ackermann_cmd_msg)
 
     def print_state(self):
@@ -129,9 +129,9 @@ class AckermannDriveKeyop:
     def finalize(self):
         rospy.loginfo('Halting motors, aligning wheels and exiting...')
         self.settings = termios.tcgetattr(sys.stdin)
-        ackermann_cmd_msg = AckermannDriveStamped()
-        ackermann_cmd_msg.drive.speed = 0
-        ackermann_cmd_msg.drive.steering_angle = 0
+        ackermann_cmd_msg = AckermannDrive()
+        ackermann_cmd_msg.speed = 0
+        ackermann_cmd_msg.steering_angle = 0
         self.motors_pub.publish(ackermann_cmd_msg)
         sys.exit()
 

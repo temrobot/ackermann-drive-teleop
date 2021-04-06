@@ -56,7 +56,7 @@ class AckermannDriveKeyop:
         if len(args) > 2:
             cmd_topic = '/' + args[2]
         else:
-            cmd_topic = 'cmd_vel'
+            cmd_topic = 'cmd_vel_ack'
 
         self.speed_range = [-float(max_speed), float(max_speed)]
         self.steering_angle_range = [-float(max_steering_angle),
